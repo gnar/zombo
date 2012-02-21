@@ -25,7 +25,7 @@ Object_vtab instance_vtab = {
 Object *instance_virt_message(Object *self0, char *id)
 {
 	/* 1. Search in singleton methods */
-	//Instance *self = (Instance*)self0;
+	/*Instance *self = (Instance*)self0;*/
 
 	/* 2. Else, behaviour of Object */
 	return object_get_vtab(self0)->super->message(self0, id);

@@ -37,17 +37,16 @@
 /* special forms */
 #define AST_IF             500 /* sub[0]: if-expr, sub[1]: then-expr, sub[2]: else-expr (or NULL) */
 #define AST_DEF            501 /* sval: identifier, sub[0]: lambda-expr ??? */
+#define AST_CALL_METHOD    502
 
 typedef struct ASTNode
 {
 	int id; /* one of AST_xyz */
 	struct ASTNode *sub[3]; /* children (NULL if unused) */
 
-	union Data {
-		int ival;
-		char *sval;
-		double fval;
-	} dat;
+	int ival;
+	char *sval;
+	double fval;
 } ASTNode;
 
 ASTNode *ast_create(int id);

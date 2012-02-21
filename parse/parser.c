@@ -42,11 +42,12 @@ ASTNode *parser_run(Parser *p, FILE *f)
 
 static ASTNode *parse_expr(Parser *p);
 static ASTNode *parse_assign(Parser *p);
+static ASTNode *parse_comparison(Parser *p);
+static ASTNode *parse_relational(Parser *p);
 static ASTNode *parse_clause(Parser *p);
 static ASTNode *parse_term(Parser *p);
+static ASTNode *parse_dot(Parser *p);
 static ASTNode *parse_atomic(Parser *p);
-static ASTNode *parse_relational(Parser *p);
-static ASTNode *parse_comparison(Parser *p);
 
 /* return current token from scanner */
 static Token *peek(Parser *p)
@@ -179,12 +180,6 @@ loop:
 	return expr;
 }
 
-/* the dot operator: <expr>.<identifier> */
-/*static ASTNode *parse_dot(Parser *p)
-{
-	return parse_clause(p);
-}*/
-
 /* +, - */
 static ASTNode *parse_clause(Parser *p) /* better name? */
 {
@@ -210,19 +205,45 @@ loop:
 /* *, /, %, etc. */
 static ASTNode *parse_term(Parser *p)
 {
-	ASTNode *expr = parse_atomic(p);
+	ASTNode *expr = parse_dot(p);
 
 loop:
 	switch (peek(p)->id) {
 		case TOK_ASTERISK:
 			accept(p); ignore_eols(p);
-			expr = ast_create_2(AST_MUL, expr, parse_atomic(p));
+			expr = ast_create_2(AST_MUL, expr, parse_dot(p));
 			goto loop;
 
 		case TOK_SLASH:
 			accept(p); ignore_eols(p);
-			expr = ast_create_2(AST_DIV, expr, parse_atomic(p));
+			expr = ast_create_2(AST_DIV, expr, parse_dot(p));
 			goto loop;
+	}
+
+	return expr;
+}
+
+/* the dot operator: <expr>.<identifier> */
+static ASTNode *parse_dot(Parser *p)
+{
+	ASTNode *expr = parse_atomic(p);
+
+loop:
+	if (peek(p)->id == TOK_DOT) {
+		accept(p); ignore_eols(p);
+
+		/* we can only parse a dot if an identifier follows */
+		if (peek(p)->id == TOK_IDENTIFIER) {
+			char *ident = strdup(peek(p)->sval); accept(p);
+			
+			expr = ast_create_1(AST_CALL_METHOD, expr);
+			expr->sval = ident;
+			expr->ival = 0; /* argc */
+			
+			goto loop;
+		} else {
+			error(p, "need identifier after dot '.' expression");
+		}
 	}
 
 	return expr;

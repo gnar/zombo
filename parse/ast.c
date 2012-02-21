@@ -3,12 +3,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 ASTNode *ast_create(int id)
 {
 	size_t i;
 	ASTNode *node = (ASTNode*)malloc(sizeof(*node));
 	node->id = id;
+	node->ival = 0;
+	node->sval = NULL;
+	node->fval = 0.0f;
 	for (i=0; i<3; ++i) node->sub[i] = NULL;
 	return node;
 }
@@ -43,10 +47,10 @@ void ast_destroy(ASTNode *node)
 
 	/* special cleanup code */
 	switch (node->id) {
-		case AST_STRING:
-			free(node->dat.sval); node->dat.sval = NULL;
-			break;
 	}
+
+	/* delete string info if any */
+	free(node->sval); node->sval = NULL;
 
 	/* recursively destropy children */
 	for (i=0; i<3; ++i) {
@@ -68,14 +72,14 @@ ASTNode *ast_create_nil()
 ASTNode *ast_create_integer(int i)
 {
 	ASTNode *node = ast_create(AST_INTEGER);
-	node->dat.ival = i;
+	node->ival = i;
 	return node;
 }
 
 ASTNode *ast_create_string(char *str)
 {
 	ASTNode *node = ast_create(AST_STRING);
-	node->dat.sval = strdup(str);
+	node->sval = strdup(str);
 	return node;
 }
 
@@ -91,8 +95,8 @@ void ast_print(ASTNode *ast, int indent)
 	/* print ast recursively */
 	switch (ast->id) {
 		case AST_NIL:           printf("nil"); break;
-		case AST_INTEGER:       printf("integer:%i", ast->dat.ival); break;
-		case AST_STRING:        printf("string:%s", ast->dat.sval); break;
+		case AST_INTEGER:       printf("integer:%i", ast->ival); break;
+		case AST_STRING:        printf("string:%s", ast->sval); break;
 
 		case AST_NEGATE:        printf("negate"); break;
 
@@ -111,6 +115,8 @@ void ast_print(ASTNode *ast, int indent)
 		case AST_IS_GREATER_EQ: printf(">= greater_equal"); break;
 
 		case AST_IF:            printf("if"); break;
+		case AST_DEF: assert(0);
+		case AST_CALL_METHOD:   printf("call: msg='%s', argc=%i", ast->sval, ast->ival); break;
 	}
 	printf("\n");
 

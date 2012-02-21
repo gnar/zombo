@@ -223,27 +223,40 @@ loop:
 	return expr;
 }
 
+static ASTNode *method_call_parser(Parser *p, ASTNode *caller)
+{
+	/* accept the dot '.' token */
+	expect(p, TOK_DOT, "expected dot '.' token"); ignore_eols(p);
+
+	/* we can only parse a dot if an identifier follows */
+	if (peek(p)->id == TOK_IDENTIFIER) {
+		char *ident = strdup(peek(p)->sval); accept(p);
+		
+		ASTNode *expr = ast_create_1(AST_CALL_METHOD, caller);
+		expr->sval = ident; /* message id */
+		expr->ival = 0; /* argc */
+
+		/* have call parameters? */
+		if (peek(p)->id == TOK_LPAR) {
+			accept(p); ignore_eols(p);
+			error(p, "call parameters not yet supported"); return NULL;
+			expect(p, TOK_RPAR, "excepted closing parenthesis for method call"); ignore_eols(p);
+		}
+
+		return expr;
+	} else {
+		error(p, "need identifier after dot '.' expression");
+		return NULL;
+	}
+}
+
 /* the dot operator: <expr>.<identifier> */
 static ASTNode *parse_dot(Parser *p)
 {
 	ASTNode *expr = parse_atomic(p);
 
-loop:
-	if (peek(p)->id == TOK_DOT) {
-		accept(p); ignore_eols(p);
-
-		/* we can only parse a dot if an identifier follows */
-		if (peek(p)->id == TOK_IDENTIFIER) {
-			char *ident = strdup(peek(p)->sval); accept(p);
-			
-			expr = ast_create_1(AST_CALL_METHOD, expr);
-			expr->sval = ident;
-			expr->ival = 0; /* argc */
-			
-			goto loop;
-		} else {
-			error(p, "need identifier after dot '.' expression");
-		}
+	while (peek(p)->id == TOK_DOT) {
+		expr = method_call_parser(p, expr);
 	}
 
 	return expr;

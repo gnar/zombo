@@ -76,9 +76,16 @@ ASTNode *ast_create_integer(int i)
 	return node;
 }
 
-ASTNode *ast_create_string(char *str)
+ASTNode *ast_create_string(const char *str)
 {
 	ASTNode *node = ast_create(AST_STRING);
+	node->sval = strdup(str);
+	return node;
+}
+
+ASTNode *ast_create_identifier(const char *str)
+{
+	ASTNode *node = ast_create(AST_IDENTIFIER);
 	node->sval = strdup(str);
 	return node;
 }
@@ -97,6 +104,7 @@ void ast_print(ASTNode *ast, int indent)
 		case AST_NIL:           printf("nil"); break;
 		case AST_INTEGER:       printf("integer:%i", ast->ival); break;
 		case AST_STRING:        printf("string:%s", ast->sval); break;
+		case AST_IDENTIFIER:    printf("ident:%s", ast->sval); break;
 
 		case AST_NEGATE:        printf("negate"); break;
 

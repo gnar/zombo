@@ -286,6 +286,12 @@ static ASTNode *parse_atomic(Parser *p)
 			expect(p, TOK_RPAR, "expected closing parenthesis");
 			return tmp;
 
+		case TOK_IDENTIFIER:
+			s = strdup(peek(p)->sval); accept(p);
+			tmp = ast_create_identifier(s);
+			free(s);
+			return tmp;
+
 		default:
 			assert(0);
 	}

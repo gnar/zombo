@@ -9,6 +9,7 @@
 #define AST_NIL              0 /* constant nil expression */
 #define AST_INTEGER          1
 #define AST_STRING           2
+#define AST_IDENTIFIER       3
 
 /* unary operations */
 #define AST_NEGATE         100 /* negate expression */
@@ -59,6 +60,7 @@ void ast_print(ASTNode *ast, int indent); /* debug print */
 
 ASTNode *ast_create_nil(); /* AST_NIL */
 ASTNode *ast_create_integer(int i); /* AST_INTEGER */
-ASTNode *ast_create_string(char *str); /* AST_STRING */
+ASTNode *ast_create_string(const char *str); /* AST_STRING */
+ASTNode *ast_create_identifier(const char *str); /* AST_IDENTIFIER */
 
 #endif

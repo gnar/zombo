@@ -266,7 +266,9 @@ static ASTNode *method_call_parser(Parser *p, ASTNode *receiver)
 		/* have do block? */
 		ASTNode *do_expr = NULL;
 
-		return ast_create_method_call(receiver, method, argc, args, do_expr);
+		ASTNode *expr = ast_create_method_call(receiver, method, argc, args, do_expr);
+		free(method);
+		return expr;
 	} else {
 		error(p, "need identifier after dot '.' expression");
 		return NULL;

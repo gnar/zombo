@@ -45,15 +45,19 @@ void ast_destroy(ASTNode *node)
 {
 	size_t i;
 
+	if (node == NULL) return;
+
 	/* special cleanup code */
 	switch (node->id) {
 		case AST_METHOD_CALL: {
-			free(node->v.method_call.receiver);
-			free(node->v.method_call.do_expr);
+			ast_destroy(node->v.method_call.receiver);
+			ast_destroy(node->v.method_call.do_expr);
 			for (i=0; i<node->v.method_call.argc; ++i) {
-				free(node->v.method_call.args[i]);
+				ast_destroy(node->v.method_call.args[i]);
 			}
 			free(node->v.method_call.args);
+			free(node->v.method_call.method);
+			break;
 		}
 	}
 
@@ -156,7 +160,7 @@ void ast_print(ASTNode *ast, int indent)
 			}
 
 			if (ast->v.method_call.do_expr) {
-				printf("%s    do::\n", space, i);
+				printf("%s    do::\n", space);
 				ast_print(ast->v.method_call.do_expr, indent+2);
 			}
 			break;

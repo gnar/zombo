@@ -47,6 +47,14 @@ void ast_destroy(ASTNode *node)
 
 	/* special cleanup code */
 	switch (node->id) {
+		case AST_METHOD_CALL: {
+			free(node->v.method_call.receiver);
+			free(node->v.method_call.do_expr);
+			for (i=0; i<node->v.method_call.argc; ++i) {
+				free(node->v.method_call.args[i]);
+			}
+			free(node->v.method_call.args);
+		}
 	}
 
 	/* delete string info if any */
@@ -90,43 +98,70 @@ ASTNode *ast_create_identifier(const char *str)
 	return node;
 }
 
+ASTNode *ast_create_method_call(ASTNode *receiver, const char *method, int argc, ASTNode **args, ASTNode *do_expr)
+{
+	ASTNode *node = ast_create(AST_METHOD_CALL);
+	node->v.method_call.receiver = receiver;
+	node->v.method_call.method = strdup(method);
+	node->v.method_call.argc = argc;
+	node->v.method_call.args = args;
+	node->v.method_call.do_expr = do_expr;
+	return node;
+}
+
 void ast_print(ASTNode *ast, int indent)
 {
 	int i;
 
 	/* indenting */
-	for (i=0; i<indent; ++i) {
-		printf("    ");
-	}
+	char space[1024] = {' '};
+	for (i=0; i<indent*4; ++i) space[i] = ' ';
+	space[indent*4] = '\0';
 
 	/* print ast recursively */
 	switch (ast->id) {
-		case AST_NIL:           printf("nil"); break;
-		case AST_INTEGER:       printf("integer:%i", ast->ival); break;
-		case AST_STRING:        printf("string:%s", ast->sval); break;
-		case AST_IDENTIFIER:    printf("ident:%s", ast->sval); break;
+		case AST_NIL:           printf("%snil\n", space); break;
+		case AST_INTEGER:       printf("%sinteger:%i\n", space, ast->ival); break;
+		case AST_STRING:        printf("%sstring:%s\n", space, ast->sval); break;
+		case AST_IDENTIFIER:    printf("%sident:%s\n", space, ast->sval); break;
 
-		case AST_NEGATE:        printf("negate"); break;
+		case AST_NEGATE:        printf("%snegate\n", space); break;
 
-		case AST_ADD:           printf("add"); break;
-		case AST_SUB:           printf("sub"); break;
-		case AST_MUL:           printf("mul"); break;
-		case AST_DIV:           printf("div"); break;
+		case AST_ADD:           printf("%sadd\n", space); break;
+		case AST_SUB:           printf("%ssub\n", space); break;
+		case AST_MUL:           printf("%smul\n", space); break;
+		case AST_DIV:           printf("%sdiv\n", space); break;
 
-		case AST_ASSIGN:        printf("assign"); break;
+		case AST_ASSIGN:        printf("%sassign\n", space); break;
 
-		case AST_IS_EQUAL:      printf("== equal"); break;
-		case AST_IS_NOT_EQUAL:  printf("!= not_equal"); break;
-		case AST_IS_LESS:       printf("< less"); break;
-		case AST_IS_GREATER:    printf("> greater"); break;
-		case AST_IS_LESS_EQ:    printf("<= less_equal"); break;
-		case AST_IS_GREATER_EQ: printf(">= greater_equal"); break;
+		case AST_IS_EQUAL:      printf("%s== equal\n", space); break;
+		case AST_IS_NOT_EQUAL:  printf("%s!= not_equal\n", space); break;
+		case AST_IS_LESS:       printf("%s< less\n", space); break;
+		case AST_IS_GREATER:    printf("%s> greater\n", space); break;
+		case AST_IS_LESS_EQ:    printf("%s<= less_equal\n", space); break;
+		case AST_IS_GREATER_EQ: printf("%s>= greater_equal\n", space); break;
 
-		case AST_IF:            printf("if"); break;
+		case AST_IF:            printf("%sif\n", space); break;
 		case AST_DEF: assert(0);
-		case AST_CALL_METHOD:   printf("call: msg='%s', argc=%i", ast->sval, ast->ival); break;
+
+		case AST_METHOD_CALL:   {
+			printf("%scall: msg='%s', argc=%i\n", space, ast->v.method_call.method, ast->v.method_call.argc);
+
+			printf("%s    object:\n", space);
+			ast_print(ast->v.method_call.receiver, indent+2);
+
+			for (i=0; i<ast->v.method_call.argc; ++i) {
+				printf("%s    arg %2i:\n", space, i);
+				ast_print(ast->v.method_call.args[i], indent+2);
+			}
+
+			if (ast->v.method_call.do_expr) {
+				printf("%s    do::\n", space, i);
+				ast_print(ast->v.method_call.do_expr, indent+2);
+			}
+			break;
+		}
 	}
-	printf("\n");
 
 	/* recurse */
 	for (i=0; i<3; ++i) {

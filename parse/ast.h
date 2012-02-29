@@ -38,16 +38,26 @@
 /* special forms */
 #define AST_IF             500 /* sub[0]: if-expr, sub[1]: then-expr, sub[2]: else-expr (or NULL) */
 #define AST_DEF            501 /* sval: identifier, sub[0]: lambda-expr ??? */
-#define AST_CALL_METHOD    502
+#define AST_METHOD_CALL    502
 
 typedef struct ASTNode
 {
 	int id; /* one of AST_xyz */
-	struct ASTNode *sub[3]; /* children (NULL if unused) */
 
+	/* generic slots */
+	struct ASTNode *sub[3]; /* children (NULL if unused) */
 	int ival;
 	char *sval;
 	double fval;
+
+	union Info {
+		struct CallMethodInfo {
+			char *method; /* method name */
+			struct ASTNode *receiver;
+			struct ASTNode **args; int argc;
+			struct ASTNode *do_expr; /* either 0 or a do-expression */
+		} method_call;
+	} v;
 } ASTNode;
 
 ASTNode *ast_create(int id);
@@ -62,5 +72,7 @@ ASTNode *ast_create_nil(); /* AST_NIL */
 ASTNode *ast_create_integer(int i); /* AST_INTEGER */
 ASTNode *ast_create_string(const char *str); /* AST_STRING */
 ASTNode *ast_create_identifier(const char *str); /* AST_IDENTIFIER */
+
+ASTNode *ast_create_method_call(ASTNode *receiver, const char *method, int argc, ASTNode **args, ASTNode *do_expr);
 
 #endif

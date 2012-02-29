@@ -1,1 +1,1 @@
-5.even_p.is_false
+5.even_p(24,54).asd(12)

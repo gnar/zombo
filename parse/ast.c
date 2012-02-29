@@ -155,7 +155,7 @@ void ast_print(ASTNode *ast, int indent)
 			ast_print(ast->v.method_call.receiver, indent+2);
 
 			for (i=0; i<ast->v.method_call.argc; ++i) {
-				printf("%s    arg %2i:\n", space, i);
+				printf("%s    arg_%i:\n", space, i);
 				ast_print(ast->v.method_call.args[i], indent+2);
 			}
 

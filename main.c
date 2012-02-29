@@ -53,18 +53,6 @@ void test1()
 	ast_destroy(root);
 }
 
-void test2()
-{
-	ASTNode *i0 = ast_create_integer(45);
-	ASTNode *i1 = ast_create_string("hallo");
-	ASTNode *ad = ast_create_2(AST_ADD, i0, i1);
-
-	ast_print(ad, 0);
-
-	ast_destroy(ad);
-}
-
-
 int main()
 {
 	test0();

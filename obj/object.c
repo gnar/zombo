@@ -48,9 +48,9 @@ char *object_internal_repr(Object *self)
 /* Virtual methods */
 
 struct Object_vtab object_vtab = {
-	0, /*super*/
+	NULL, /*super*/
 	object_virt_message, /* object_message() */
-	0, /* get_size() [abstract] */
+	NULL, /* get_size() [abstract] */
 	object_virt_internal_repr
 };
 

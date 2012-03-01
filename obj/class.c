@@ -13,7 +13,7 @@ Class *class_construct(Class *class, Class *base, char *name, size_t bytes)
 
 	c = (Class*)instance_construct(class, bytes);
 	c->super.super.vtab = (Object_vtab*)&class_vtab;
-	c->name = name ? strdup(name) : 0;
+	c->name = name ? strdup(name) : NULL;
 	c->base = base;
 	return c;
 }
@@ -127,7 +127,7 @@ Class *class_construct_object_class(Class *clas, Class *base)
 
 static Object *class_construct_class(Class *class_class)
 {
-	return (Object*)class_construct(class_class, 0, 0, sizeof(Class)); 
+	return (Object*)class_construct(class_class, NULL, NULL, sizeof(Class)); 
 }
 
 Class *class_construct_class_class(Class *clas, Class *base)

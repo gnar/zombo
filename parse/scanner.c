@@ -257,7 +257,7 @@ static void scanner_scan_string(Scanner *scn)
 {
 	size_t str_len = 64; char *str = (char*)malloc(str_len);
 	int pos = 0;
-	const char *err_msg = 0;
+	const char *err_msg = NULL;
 
 	scanner_next_char(scn); /* skip the '"' */
 

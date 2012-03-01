@@ -249,7 +249,7 @@ static int look_ahead_for_expr(Parser *p)
 
 static ASTNode **parameter_list_parser_inner(Parser *p, int *argc_out /*out*/, int have_surrounding_parentheses)
 {
-	int argc = 0; ASTNode **args = 0;
+	int argc = 0; ASTNode **args = NULL;
 
 	int have_comma = 0;
 

@@ -151,7 +151,7 @@ void ast_print(ASTNode *ast, int indent)
 		case AST_METHOD_CALL:   {
 			printf("%scall: msg='%s', argc=%i\n", space, ast->v.method_call.method, ast->v.method_call.argc);
 
-			printf("%s    object:\n", space);
+			printf("%s    recv:\n", space);
 			ast_print(ast->v.method_call.receiver, indent+2);
 
 			for (i=0; i<ast->v.method_call.argc; ++i) {

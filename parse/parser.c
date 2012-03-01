@@ -55,6 +55,12 @@ static Token *peek(Parser *p)
 	return scanner_peek(p->scn);
 }
 
+/* return current token id from scanner */
+static int peek_id(Parser *p)
+{
+	return peek(p)->id;
+}
+
 /* accept current token */
 static void accept(Parser *p)
 {
@@ -80,7 +86,7 @@ static void expect(Parser *p, int tok_id, const char *fmt, ...)
 {
 	va_list args;
 
-	if (peek(p)->id == tok_id) {
+	if (peek_id(p) == tok_id) {
 		accept(p);
 	} else {
 		/* parse error! */
@@ -93,7 +99,7 @@ static void expect(Parser *p, int tok_id, const char *fmt, ...)
 /* ignore zero to N end-of-line tokens */
 static void ignore_eols(Parser *p)
 {
-	while (peek(p)->id == TOK_END_OF_LINE) {
+	while (peek_id(p) == TOK_END_OF_LINE) {
 		accept(p);
 	}
 }
@@ -102,7 +108,7 @@ static void ignore_eols(Parser *p)
 static ASTNode *parse_file(Parser *p)
 {
 	/* parse TOK_BEG_OF_FILE */
-	if (peek(p)->id != TOK_BEG_OF_FILE) {
+	if (peek_id(p) != TOK_BEG_OF_FILE) {
 		assert(0);
 	}
 	accept(p);
@@ -121,7 +127,7 @@ static ASTNode *parse_assign(Parser *p)
 {
 	ASTNode *expr = parse_comparison(p);
 
-	switch (peek(p)->id) {
+	switch (peek_id(p)) {
 		case TOK_ASSIGN:
 			accept(p); ignore_eols(p);
 			expr = ast_create_2(AST_ASSIGN, expr, parse_assign(p));
@@ -137,7 +143,7 @@ static ASTNode *parse_comparison(Parser *p)
 	ASTNode *expr = parse_relational(p);
 
 loop:
-	switch (peek(p)->id) {
+	switch (peek_id(p)) {
 		case TOK_EQUAL: /* == */
 			accept(p); ignore_eols(p);
 			expr = ast_create_2(AST_IS_EQUAL, expr, parse_comparison(p));
@@ -158,7 +164,7 @@ static ASTNode *parse_relational(Parser *p)
 	ASTNode *expr = parse_clause(p);
 
 loop:
-	switch (peek(p)->id) {
+	switch (peek_id(p)) {
 		case TOK_LESS: /* < */
 			accept(p); ignore_eols(p);
 			expr = ast_create_2(AST_IS_LESS, expr, parse_clause(p));
@@ -186,7 +192,7 @@ static ASTNode *parse_clause(Parser *p) /* better name? */
 	ASTNode *expr = parse_term(p);
 
 loop:
-	switch (peek(p)->id)
+	switch (peek_id(p))
 	{
 		case TOK_PLUS:
 			accept(p); ignore_eols(p);
@@ -208,7 +214,7 @@ static ASTNode *parse_term(Parser *p)
 	ASTNode *expr = parse_dot(p);
 
 loop:
-	switch (peek(p)->id) {
+	switch (peek_id(p)) {
 		case TOK_ASTERISK:
 			accept(p); ignore_eols(p);
 			expr = ast_create_2(AST_MUL, expr, parse_dot(p));
@@ -223,27 +229,78 @@ loop:
 	return expr;
 }
 
-static ASTNode **parameter_list_parser(Parser *p, int *argc_out /*out*/)
+/*
+ * Checks if current token is the first token of an expression.
+ */
+static int look_ahead_for_expr(Parser *p)
 {
-	int argc = 0;
-	ASTNode **args = 0;
+	switch (peek_id(p)) {
+		case TOK_INTEGER:
+		case TOK_STRING:
+		case TOK_LPAR:
+		case TOK_IDENTIFIER: return 1;
+	}
+	return 0;
+}
 
-	accept(p); ignore_eols(p);
+/*
+   <parameter_list> ::= '(' <expr1> ',' <expr2> ',' ... ',' <exprN> ')'
+ */
 
-	while (peek(p)->id != TOK_RPAR) {
-		if (argc != 0) {
-			expect(p, TOK_COMMA, "expected comma to separate arguments in method call");
+static ASTNode **parameter_list_parser_inner(Parser *p, int *argc_out /*out*/, int have_surrounding_parentheses)
+{
+	int argc = 0; ASTNode **args = 0;
+
+	int have_comma = 0;
+
+	while (have_surrounding_parentheses ? (peek_id(p) != TOK_RPAR) 
+	                                    : (have_comma || (argc == 0 && look_ahead_for_expr(p)))) {
+		/* we need to have had a comma for all but the first argument */
+		if (argc > 0 && !have_comma) {
+			error(p, "expected comma to separate arguments in argument list");
 		}
-	
+
+		/* parse one argument */
+		if (!look_ahead_for_expr(p)) {
+			error(p, "expected argument after comma in argument list");
+		}
+
 		ASTNode *arg = parse_expr(p); 
 		argc += 1;
 		args = (ASTNode**)realloc(args, argc * sizeof(ASTNode*));
 		args[argc-1] = arg;
+
+		/* parse comma */
+		if (peek_id(p) == TOK_COMMA) {
+			accept(p);
+			have_comma = 1;
+		} else {
+			have_comma = 0;
+		}
 	}
 
-	expect(p, TOK_RPAR, "excepted closing parenthesis for method call"); ignore_eols(p);
+	if (have_comma) {
+		error(p, "expected argument after comma in argument list");
+	}
 
-	*argc_out = argc; return args;
+	*argc_out = argc;
+	return args;
+}
+
+static ASTNode **parameter_list_parser(Parser *p, int *argc_out /*out*/)
+{
+	int argc; ASTNode **args;
+
+	if (peek_id(p) == TOK_LPAR) { /* with surrounding parentheses */
+		expect(p, TOK_LPAR, "expected opening parenthesis at begining of argument list"); ignore_eols(p);
+		args = parameter_list_parser_inner(p, &argc, 1);
+		expect(p, TOK_RPAR, "expected closing parenthesis at end of argument list"); ignore_eols(p);
+	} else { /* without surrounding parentheses */
+		args = parameter_list_parser_inner(p, &argc, 0);
+	}
+
+	*argc_out = argc;
+	return args;
 }
 
 static ASTNode *method_call_parser(Parser *p, ASTNode *receiver)
@@ -252,16 +309,13 @@ static ASTNode *method_call_parser(Parser *p, ASTNode *receiver)
 	expect(p, TOK_DOT, "expected dot '.' token"); ignore_eols(p);
 
 	/* we can only parse a dot if an identifier follows */
-	if (peek(p)->id == TOK_IDENTIFIER) {
+	if (peek_id(p) == TOK_IDENTIFIER) {
 		/* method */
 		char *method = strdup(peek(p)->sval); accept(p);
 		
 		/* have call parameters? */
 		int argc = 0;
-		ASTNode **args = NULL;
-		if (peek(p)->id == TOK_LPAR) {
-			args = parameter_list_parser(p, &argc);
-		}
+		ASTNode **args = parameter_list_parser(p, &argc);
 
 		/* have do block? */
 		ASTNode *do_expr = NULL;
@@ -280,7 +334,7 @@ static ASTNode *parse_dot(Parser *p)
 {
 	ASTNode *expr = parse_atomic(p);
 
-	while (peek(p)->id == TOK_DOT) {
+	while (peek_id(p) == TOK_DOT) {
 		expr = method_call_parser(p, expr);
 	}
 
@@ -294,7 +348,7 @@ static ASTNode *parse_atomic(Parser *p)
 	int i;
 	char *s;
 
-	switch (peek(p)->id) {
+	switch (peek_id(p)) {
 		case TOK_INTEGER:
 			i = peek(p)->ival; accept(p);
 			return ast_create_integer(i);

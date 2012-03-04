@@ -49,6 +49,9 @@ static ASTNode *parse_term(Parser *p);
 static ASTNode *parse_dot(Parser *p);
 static ASTNode *parse_atomic(Parser *p);
 
+static ASTNode *parse_let_expression(Parser *p);
+static ASTNode *parse_body(Parser *p, int start_token, int end_token, int end_token2);
+
 /* return current token from scanner */
 static Token *peek(Parser *p)
 {
@@ -349,6 +352,7 @@ static ASTNode *parse_atomic(Parser *p)
 	char *s;
 
 	switch (peek_id(p)) {
+		/* literals */
 		case TOK_INTEGER:
 			i = peek(p)->ival; accept(p);
 			return ast_create_integer(i);
@@ -359,19 +363,97 @@ static ASTNode *parse_atomic(Parser *p)
 			free(s);
 			return tmp;
 
+		/* grouping by parentheses */
 		case TOK_LPAR: /* term = '(' expr ')' */
 			accept(p); ignore_eols(p);
 			tmp = parse_expr(p); ignore_eols(p);
 			expect(p, TOK_RPAR, "expected closing parenthesis");
 			return tmp;
 
+		/* identifier */
 		case TOK_IDENTIFIER:
 			s = strdup(peek(p)->sval); accept(p);
 			tmp = ast_create_identifier(s);
 			free(s);
 			return tmp;
 
+		/* complex expressions */
+		case TOK_DEF:
+			return parse_let_expression(p);
+
+		case TOK_BEGIN:
+			return parse_body(p, TOK_BEGIN, TOK_END, -1);
+
 		default:
 			assert(0);
 	}
+}
+
+/*
+ * let <id>
+ * let <id> = <expr>
+ * let <id1>, <id2>
+ * let <id1> = <expr1>, <id2>, <id3> = <expr3>
+ */
+static ASTNode *parse_let_expression(Parser *p)
+{
+	expect(p, TOK_LET, "expected let-expresssion to begin with 'let' keyword");
+	
+	int have_comma = 1;
+	while (peek_id(p) == TOK_IDENTIFIER) {
+		
+		/* get identifier */
+		char *ident = strdup(peek(p)->sval); accept(p);
+		
+		/* optional init expression */
+		ASTNode *init = NULL;
+		if (peek_id(p) == TOK_ASSIGN) {
+			accept(p);
+			init = parse_expr(p);
+		}
+
+		/* parse body */
+		ASTNode *body = NULL;
+		
+
+		free(ident);
+		
+		if (peek_id(p) == TOK_COMMA) {
+			have_comma = 1;
+			accept(p);
+		} else {
+			have_comma = 0;
+		}
+	}
+}
+
+static ASTNode *parse_body(Parser *p, int start_token, int end_token, int end_token2)
+{
+	ASTNode **stmts = NULL; 
+	int num_stmts = 0; 
+	int have_eol;
+
+	/* parse start token */
+	if (start_token != -1) {
+		expect(p, start_token, "expected other token at begin of body expression");
+		ignore_eols(p);
+	}
+
+	/* every expression (except the last one) must be terminated by an TOK_END_OF_LINE. */
+	have_eol = 1;
+	while (peek_id(p) != end_token && peek_id(p) != end_token2) {
+		if (!have_eol) {
+			error(p, "statement must be terminated by a new line");
+		}
+
+		stmts = (ASTNode**)realloc(stmts, sizeof(ASTNode*) * (num_stmts+1));
+		stmts[num_stmts++] = parse_expr(p);
+
+		have_eol = (peek_id(p) == TOK_END_OF_LINE);
+		ignore_eols(p);
+	}
+
+	accept(p); /* either end_token or end_token2 */
+
+	return ast_create_body(num_stmts, stmts);
 }

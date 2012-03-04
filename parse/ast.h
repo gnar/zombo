@@ -39,6 +39,8 @@
 #define AST_IF             500 /* sub[0]: if-expr, sub[1]: then-expr, sub[2]: else-expr (or NULL) */
 #define AST_DEF            501 /* sval: identifier, sub[0]: lambda-expr ??? */
 #define AST_METHOD_CALL    502
+#define AST_LET            503
+#define AST_BODY           504 /* sequence of statemets */
 
 typedef struct ASTNode
 {
@@ -57,6 +59,17 @@ typedef struct ASTNode
 			struct ASTNode **args; int argc;
 			struct ASTNode *do_expr; /* either 0 or a do-expression */
 		} method_call;
+
+		struct LetInfo {
+			char *ident;
+			struct ASTNode *init;
+			struct ASTNode *body;
+		} let;
+
+		struct BodyInfo {
+			int num_stmts;
+			struct ASTNode **stmts;
+		} body;
 	} v;
 } ASTNode;
 
@@ -74,5 +87,7 @@ ASTNode *ast_create_string(const char *str); /* AST_STRING */
 ASTNode *ast_create_identifier(const char *str); /* AST_IDENTIFIER */
 
 ASTNode *ast_create_method_call(ASTNode *receiver, const char *method, int argc, ASTNode **args, ASTNode *do_expr);
+ASTNode *ast_create_let(const char *ident, ASTNode *init, ASTNode *body);
+ASTNode *ast_create_body(int num_stmts, ASTNode **stmts);
 
 #endif

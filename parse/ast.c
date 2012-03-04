@@ -59,6 +59,14 @@ void ast_destroy(ASTNode *node)
 			free(node->v.method_call.method);
 			break;
 		}
+
+		case AST_BODY: {
+			for (i=0; i<node->v.body.num_stmts; ++i) {
+				ast_destroy(node->v.body.stmts[i]);
+			}
+			free(node->v.body.stmts);
+			break;
+		}
 	}
 
 	/* delete string info if any */
@@ -113,6 +121,23 @@ ASTNode *ast_create_method_call(ASTNode *receiver, const char *method, int argc,
 	return node;
 }
 
+ASTNode *ast_create_let(const char *ident, ASTNode *init, ASTNode *body)
+{
+	ASTNode *node = ast_create(AST_LET);
+	node->v.let.ident = strdup(ident);
+	node->v.let.init = init;
+	node->v.let.body = body;
+	return node;
+}
+
+ASTNode *ast_create_body(int num_stmts, ASTNode **stmts)
+{
+	ASTNode *node = ast_create(AST_BODY);
+	node->v.body.num_stmts = num_stmts;
+	node->v.body.stmts = stmts;
+	return node;
+}
+
 void ast_print(ASTNode *ast, int indent)
 {
 	int i;
@@ -162,6 +187,16 @@ void ast_print(ASTNode *ast, int indent)
 			if (ast->v.method_call.do_expr) {
 				printf("%s    do::\n", space);
 				ast_print(ast->v.method_call.do_expr, indent+2);
+			}
+			break;
+		}
+
+		case AST_BODY: {
+			printf("%sbody: num_stmts=%i\n", space, ast->v.body.num_stmts);
+
+			for (i=0; i<ast->v.body.num_stmts; ++i) {
+				printf("%s    stmt_%i:\n", space, i);
+				ast_print(ast->v.body.stmts[i], indent+2);
 			}
 			break;
 		}

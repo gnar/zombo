@@ -1,1 +1,3 @@
-out.write math.pi(5), math.e
+begin 
+  out.put "Result: ", math.sin(x)
+end

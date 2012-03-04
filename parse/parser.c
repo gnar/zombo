@@ -297,7 +297,7 @@ static ASTNode **parameter_list_parser(Parser *p, int *argc_out /*out*/)
 	if (peek_id(p) == TOK_LPAR) { /* with surrounding parentheses */
 		expect(p, TOK_LPAR, "expected opening parenthesis at begining of argument list"); ignore_eols(p);
 		args = parameter_list_parser_inner(p, &argc, 1);
-		expect(p, TOK_RPAR, "expected closing parenthesis at end of argument list"); ignore_eols(p);
+		expect(p, TOK_RPAR, "expected closing parenthesis at end of argument list");
 	} else { /* without surrounding parentheses */
 		args = parameter_list_parser_inner(p, &argc, 0);
 	}

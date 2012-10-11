@@ -5,12 +5,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-static void scanner_scan(Scanner *scn);
-static void scanner_scan_integer(Scanner *scn);
-static void scanner_scan_identifier_or_keyword(Scanner *scn);
-static void scanner_scan_string(Scanner *scn);
-static void scanner_next_char(Scanner *scn);
-
 /* special values for Scanner::ch */
 #define BEG_OF_FILE 260
 #define END_OF_LINE 256
@@ -32,6 +26,14 @@ static struct Keyword kw_map[] = {
 	{"def",   TOK_DEF},
 	{"let",   TOK_LET},
 };
+
+static size_t kw_map_length = sizeof(kw_map) / sizeof(kw_map[0]);
+
+static void scanner_scan(Scanner *scn);
+static void scanner_scan_integer(Scanner *scn);
+static void scanner_scan_identifier_or_keyword(Scanner *scn);
+static void scanner_scan_string(Scanner *scn);
+static void scanner_next_char(Scanner *scn);
 
 void scanner_init(Scanner *scn, FILE *f)
 {
@@ -240,7 +242,7 @@ static void scanner_scan_identifier_or_keyword(Scanner *scn)
 	symstr[pos++] = 0;
 
 	/* check if buffer is a keyword */
-	for (i=0; i<sizeof(kw_map) / sizeof(kw_map[0]); ++i) {
+	for (i=0; i<kw_map_length; ++i) {
 		if (0 == strcmp(symstr, kw_map[i].keyword)) {
 			scn->tok.id = kw_map[i].id;
 			free(symstr);

@@ -1,30 +1,23 @@
-SRC += obj/object.c
-SRC += obj/instance.c
-SRC += obj/class.c
-SRC += obj/nil.c
-SRC += context.c
-SRC += parse/scanner.c
-SRC += parse/parser.c
-SRC += parse/ast.c
-SRC += main.c
+TARGET  := fmain
+SRCS    := main.c tools.c object/bool.c object/vm.c object/nil.c object/object.c object/string.c object/symbol.c object/type.c object/map.c object/function.c parse/parser.c parse/scanner.c parse/ast.c
+OBJS    := ${SRCS:.c=.o} 
 
-####################################
+#CCFLAGS = -std=gnu99 -O2 -Wall -Werror -ggdb 
+CCFLAGS = -I. -std=gnu99 -O2 -Wall -ggdb 
+LDFLAGS = 
+LIBS    = 
 
-CC = gcc -Wall -g 
-EXE = zombo
-INCLUDE_FLAGS += -I.
-LDFLAGS = #-lmp -lm
-DEFINES = 
+.PHONY: all clean distclean 
 
-#####################################
+all:: ${TARGET} 
 
-OBJ = ${SRC:.c=.o}
+${TARGET}: ${OBJS} 
+	${CC} ${LDFLAGS} -o $@ $^ ${LIBS} 
 
-all: ${OBJ}
-	${CC} ${OBJ} ${LDFLAGS} -o ${EXE}
+${OBJS}: %.o: %.c
+	${CC} ${CCFLAGS} -o $@ -c $< 
 
-%.o: %.c
-	${CC} ${DEFINES} ${INCLUDE_FLAGS} -c $< -o $@
+clean:: 
+	-rm -f *~ ${OBJS} ${TARGET} 
 
-clean:
-	-rm -f ${OBJ} ${EXE}
+distclean:: clean

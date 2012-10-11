@@ -1,71 +1,46 @@
-#include <stdio.h>
+#include "object/object.h"
+#include "object/vm.h"
+#include "object/nil.h"
+#include "object/bool.h"
+#include "object/string.h"
+#include "object/symbol.h"
+#include "object/type.h"
+#include "object/map.h"
+#include "object/function.h"
+
+#include "tools.h"
+
 #include <stdlib.h>
+#include <stdio.h>
 
-#include "context.h"
-
-#include "parse/scanner.h"
-#include "parse/parser.h"
-#include "parse/ast.h"
-
-#include "obj/object.h"
-#include "obj/instance.h"
-#include "obj/class.h"
+void print_repr(object_t *obj)
+{
+	string_t *s = repr(obj);
+	wprintf(L"%ls\n", s->s_chars);
+	DECR(s);
+}
 
 void test0()
 {
-	char buf[256];
+	//vm_t *v0 = vm_get();
+	//print_repr((object_t*)vm_get());
+	//DECR(v0);
 
-	FILE *f = fopen("test.g4", "r");
+	//symbol_t *s0 = symbol_new(L"some_symbol");
+	//print_repr((object_t*)s0);
+	//printf("aa: %i\n", s0->super.ref_cnt);
+	//DECR(s0);
 
-	printf("Tokens:\n");
-
-	Scanner scn;
-	scanner_init(&scn, f);
-	do {
-		token_print(scanner_peek(&scn), buf);
-		printf("    %s\n", buf);
-
-		scanner_accept(&scn);
-	} while ((scanner_peek(&scn)->id != TOK_END_OF_FILE) && (scanner_peek(&scn)->id != TOK_ERROR));
-
-	token_print(scanner_peek(&scn), buf);
-	printf("    %s\n", buf);
-
-	scanner_done(&scn);
-
-	fclose(f);
-}
-
-void test1()
-{
-	Parser p;
-	parser_init(&p);
-
-	FILE *f = fopen("test.g4", "r");
-	ASTNode *root = parser_run(&p, f);
-	fclose(f);
-
-	parser_done(&p);
-
-	/* print ast */
-	printf("Syntax tree:\n");
-	ast_print(root, 1);
-	ast_destroy(root);
+	/*wprintf(L"%ls\n", repr((object_t*)bool_new(false))->s_chars);
+	wprintf(L"%ls\n", repr((object_t*)bool_new(true))->s_chars);
+	wprintf(L"%ls\n", repr((object_t*)string_new(L"hallo"))->s_chars);
+	wprintf(L"%ls\n", repr((object_t*)map_new())->s_chars);
+	wprintf(L"%ls\n", repr((object_t*)function_new())->s_chars);*/
+	/*type_t *der = type_new(L"mystr", vm_get()->string_type);*/
 }
 
 int main()
 {
-	test0();
-	test1();
-
-	/*context_init();
- 
-	char *tmp = object_internal_repr((Object*)ctx->nil);
-	printf("%s\n", tmp);
-	printf("%p\n", ctx->nil);
-	free(tmp);
-
-	context_deinit();*/
-
-	return 0;
+	vm_create();
+	vm_shutdown(vm_get());
 }

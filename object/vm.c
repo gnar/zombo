@@ -7,6 +7,7 @@
 #include "object/symbol.h"
 #include "object/map.h"
 #include "object/function.h"
+#include "object/thread.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -81,7 +82,7 @@ vm_t *vm_create()
 	itp->closure_type = NULL;
 	itp->frame_type = NULL;
 	itp->continuation_type = NULL;
-	itp->thread_type = NULL;
+	itp->thread_type = threadtype_new();
 
 	return itp;
 }

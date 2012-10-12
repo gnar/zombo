@@ -22,12 +22,30 @@ struct type *threadtype_new()
 
 /******************************************************************************/
 
+thread_t *thread_new(closure_t *clos)
+{
+	type_t *thr_type = vm_get()->thread_type;
+	thread_t *thr = (thread_t*)type_allocate(thr_type);
+	type_initialize(thr_type, (object_t*)thr);
+	return thr;
+}
+
+void thread_execute(thread_t *thr)
+{
+	
+}
+
+/******************************************************************************/
+
 static void thread_fn_initialize(object_t *obj)
 {
+	thread_t *thr = (thread_t*)obj;
+	thr->frm = NULL;
 }
 
 static void thread_fn_deinitialize(object_t *obj)
 {
+	DECR0(thr->frame);
 }
 
 static wchar_t *thread_fn_repr(object_t *obj)

@@ -3,15 +3,6 @@
 
 #include "object/object.h"
 
-/*
-   defined types:
-     environment
-     closure
-     continuation
-     frame
-     thread
- */
-
 typedef struct environment
 {
 	object_t super;

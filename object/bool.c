@@ -9,6 +9,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+static void bool_fn_initialize(object_t *obj)
+{
+	bool_t *b = (bool_t*)obj;
+	b->value = false;
+}
+
+static void bool_fn_deinitialize(object_t *obj)
+{
+}
+
 static wchar_t *bool_fn_repr(object_t *obj)
 {
 	bool_t *b = (bool_t*)obj;
@@ -24,22 +34,12 @@ static size_t bool_fn_hash(object_t *self)
 	return bool_is_true((bool_t*)self) ? 1 : 0;
 }
 
-static object_t *bool_fn_allocate(type_t *type)
-{
-	return (object_t*)vm_get()->false_obj;
-}
-
-static void bool_fn_deallocate(object_t *self)
-{
-	/* no op */
-}
-
 type_t *booltype_new()
 {
 	type_t *nt = (type_t*)type_new(L"bool", vm_get()->object_type);
 	nt->basicsize = sizeof(struct bool_);
-	nt->fn_allocate = &bool_fn_allocate;
-	nt->fn_deallocate = &bool_fn_deallocate;
+	nt->fn_initialize = &bool_fn_initialize;
+	nt->fn_deinitialize = &bool_fn_deinitialize;
 	nt->fn_repr = &bool_fn_repr;
 	nt->fn_hash = &bool_fn_hash;
 	return nt;
@@ -47,11 +47,12 @@ type_t *booltype_new()
 
 bool_t *bool_new(bool value)
 {
-	if (value == true) {
-		return vm_get()->true_obj;
-	} else {
-		return vm_get()->false_obj;
-	}
+	type_t *bool_type = vm_get()->bool_type;
+	bool_t *self = (bool_t*)type_allocate(bool_type);
+	type_initialize(bool_type, (object_t*)self);
+
+	self->value = value;
+	return self;
 }
 
 bool bool_check(object_t *self)
@@ -61,20 +62,5 @@ bool bool_check(object_t *self)
 
 bool bool_is_true(bool_t *self)
 {
-	vm_t *itp = vm_get();
-	if (self == itp->true_obj ) return true;
-	if (self == itp->false_obj) return false;
-	assert(0);
-	return false;
-}
-
-void bool_bootstrap(struct vm *itp)
-{
-	itp->true_obj  = (bool_t*)malloc(sizeof(struct bool_));
-	itp->true_obj->super.type = itp->bool_type;
-	itp->true_obj->super.ref_cnt = 1;
-
-	itp->false_obj = (bool_t*)malloc(sizeof(struct bool_));
-	itp->false_obj->super.type = itp->bool_type;
-	itp->false_obj->super.ref_cnt = 1;
+	return self->value;
 }

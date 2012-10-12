@@ -24,8 +24,6 @@ typedef struct type
 	/* message map (for methods of class) */
 } type_t;
 
-void typetype_bootstrap(struct vm *itr);
-
 type_t *type_new(const wchar_t *name, type_t *base); /* create a new type object */
 
 /* alloc memory (and set super.type) */

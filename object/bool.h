@@ -7,9 +7,8 @@
 
 typedef struct bool_ {
 	struct object super;
+	bool value;
 } bool_t;
-
-void bool_bootstrap(struct vm *itp);
 
 bool_t *bool_new(bool value);
 struct type *booltype_new();

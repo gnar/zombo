@@ -7,13 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-static wchar_t *type_fn_repr(object_t *obj)
+wchar_t *type_fn_repr(object_t *obj)
 {
 	type_t *type = (type_t*)obj;
 	return wcsdup(type->name);
 }
 
-static void type_fn_initialize(object_t *o_self)
+void type_fn_initialize(object_t *o_self)
 {
 	type_t *self = (type_t*)o_self;
 	type_t *base = vm_get()->object_type;
@@ -29,7 +29,7 @@ static void type_fn_initialize(object_t *o_self)
 	self->fn_repr         = &type_fn_repr;
 }
 
-static void type_fn_deinitialize(object_t *o_self)
+void type_fn_deinitialize(object_t *o_self)
 {
 	type_t *self = (type_t*)o_self;
 	free(self->name); self->name = NULL;
@@ -44,32 +44,13 @@ static void type_fn_deinitialize(object_t *o_self)
 	self->fn_repr         = NULL;
 }
 
-void typetype_bootstrap(struct vm *itr)
-{
-	type_t *tt = itr->type_type;
-	
-	tt->super.type = itr->type_type;    /* type of type-object is type */
-	tt->super.ref_cnt = 1;
-
-	tt->name = wcsdup(L"type");
-	tt->base = itr->object_type; /* type is derived from object */
-	tt->basicsize = sizeof(struct type);
-
-	tt->fn_allocate     = &object_fn_allocate;
-	tt->fn_deallocate   = &object_fn_deallocate;
-	tt->fn_initialize   = &type_fn_initialize;
-	tt->fn_deinitialize = &type_fn_deinitialize;
-	tt->fn_repr = &type_fn_repr;
-	tt->fn_hash = &object_fn_hash;
-}
-
 type_t *type_new(const wchar_t *name, type_t *base)
 {
 	type_t *self = (type_t*)type_allocate(vm_get()->type_type);
 	type_initialize(vm_get()->type_type, (object_t*)self);
 
 	self->name = wcsdup(name);
-	self->base = base;
+	self->base = base; INCR(self->base);
 	self->basicsize = base->basicsize;
 
 	self->fn_allocate     = base->fn_allocate;

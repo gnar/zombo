@@ -32,6 +32,4 @@ size_t         object_fn_hash(struct object *self);
 
 void object_delete(struct object *obj);
 
-void objecttype_bootstrap(struct vm *itr);
-
 #endif

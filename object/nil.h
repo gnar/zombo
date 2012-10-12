@@ -9,8 +9,6 @@ typedef struct nil {
 	struct object super;
 } nil_t;
 
-void nil_bootstrap(struct vm *itp);
-
 nil_t *nil_new();
 struct type *niltype_new();
 

@@ -19,16 +19,6 @@ wchar_t *vm_fn_repr(struct object *self)
 	return object_fn_repr(self);
 }
 
-static type_t *vmtype_new()
-{
-	type_t *nt = (type_t*)type_new(L"vm", vm_get()->object_type);
-	nt->basicsize = sizeof(struct vm);
-	nt->fn_allocate = &object_fn_allocate;
-	nt->fn_deallocate = &object_fn_deallocate;
-	nt->fn_repr = &vm_fn_repr;
-	return nt;
-}
-
 vm_t *vm_get()
 {
 	return the_itp;
@@ -36,31 +26,69 @@ vm_t *vm_get()
 
 vm_t *vm_create()
 {
-	struct vm *itp = the_itp = (vm_t*)malloc(sizeof(struct vm));
-	itp->super.type = NULL; /* see (1) */
-	itp->super.ref_cnt = 1;
+	wchar_t *type_fn_repr(object_t*);
+	void type_fn_initialize(object_t*);
+	void type_fn_deinitialize(object_t*);
 
 	/*** I. Setup garbage collector ***/
 	//TODO
 
-	/*** II. Construct the types ***/
-	
-	/* Create "object" and "type" types */
-	itp->object_type = (type_t*)malloc(sizeof(struct type));
-	itp->type_type = (type_t*)malloc(sizeof(struct type));
-	itp->instance_type = NULL; // TODO
+	/*** II. Construct the most basic types and objects ***/
 
-	typetype_bootstrap(itp);
-	objecttype_bootstrap(itp);
+	/** Bootstrap the "object" and "type" and "vm" types **/
+	
+	type_t *tt = (type_t*)malloc(sizeof(type_t)); tt->super.ref_cnt = 1; tt->super.type = tt; INCR(tt);
+	type_t *ot = (type_t*)malloc(sizeof(type_t)); ot->super.ref_cnt = 1; ot->super.type = tt; INCR(tt);
+	type_t *vt = (type_t*)malloc(sizeof(type_t)); vt->super.ref_cnt = 1; vt->super.type = tt; INCR(tt);
+
+	tt->name = wcsdup(L"type");
+	tt->base = ot; INCR(tt->base);
+	tt->basicsize = sizeof(struct type);
+	tt->fn_allocate     = &object_fn_allocate;
+	tt->fn_deallocate   = &object_fn_deallocate;
+	tt->fn_initialize   = &type_fn_initialize;
+	tt->fn_deinitialize = &type_fn_deinitialize;
+	tt->fn_repr         = &type_fn_repr;
+	tt->fn_hash         = &object_fn_hash;
+
+	ot->name = wcsdup(L"object");
+	ot->base = NULL; INCR(ot->base);
+	ot->basicsize = sizeof(struct type);
+	ot->fn_allocate     = &object_fn_allocate;
+	ot->fn_deallocate   = &object_fn_deallocate;
+	ot->fn_initialize   = &object_fn_initialize;
+	ot->fn_deinitialize = &object_fn_deinitialize;
+	ot->fn_repr         = &object_fn_repr;
+	ot->fn_hash         = &object_fn_hash;
+
+	vt->name = wcsdup(L"vm");
+	vt->base = ot; INCR(vt->base);
+	vt->basicsize = sizeof(struct type);
+	vt->fn_allocate     = &object_fn_allocate;
+	vt->fn_deallocate   = &object_fn_deallocate;
+	vt->fn_initialize   = &object_fn_initialize;
+	vt->fn_deinitialize = &object_fn_deinitialize;
+	vt->fn_repr         = &vm_fn_repr;
+	vt->fn_hash         = &object_fn_hash;
+
+	/** Bootstrap the vm object **/
+	vm_t *itp = the_itp = (vm_t*)malloc(sizeof(vm_t)); itp->super.ref_cnt = 1; itp->super.type = vt; INCR(itp->super.type);
+	itp->type_type = tt;
+	itp->object_type = ot;
+	itp->vm_type = vt;
+
+	/*** III. Construct the basic types and objects (all the weird bootstrapping is done by now) ***/
 
 	/* "nil" type */
 	itp->nil_type = niltype_new();
-	nil_bootstrap(itp); /* create the nil object */
+	itp->nil_obj = nil_new(); /* also create the default nil object */
 
 	/* "bool" type */
 	itp->bool_type = booltype_new();
-	bool_bootstrap(itp); /* create the true and false objects */
+	itp->true_obj = bool_new(true);
+	itp->false_obj = bool_new(false);
 
+#if 0
 	/* string type */
 	itp->string_type = stringtype_new();
 
@@ -73,9 +101,8 @@ vm_t *vm_create()
 	/* list type */
 	itp->list_type = NULL;
 
-	/* vm type */
-	itp->vm_type = vmtype_new();
-	itp->super.type = itp->vm_type; /* (1) */
+	/* instance_type */
+	itp->instance_type = NULL;
 
 	/* function_type */
 	itp->function_type = functiontype_new();
@@ -83,30 +110,35 @@ vm_t *vm_create()
 	itp->frame_type = NULL;
 	itp->continuation_type = NULL;
 	itp->thread_type = threadtype_new();
+#endif
 
 	return itp;
 }
 
 void vm_shutdown(vm_t *vm)
 {
-	//DECR0(vm->type_type);
-	//DECR0(vm->object_type);
-	//DECR0(vm->instance_type);
-	//DECR0(vm->string_type);
-	//DECR0(vm->nil_type);
-	//DECR0(vm->bool_type);
-	//DECR0(vm->list_type);
-	//DECR0(vm->symbol_type);
-	//DECR0(vm->vm_type);
-	//DECR0(vm->map_type);
+	DECR(vm->type_type);
+	DECR(vm->object_type);
+	DECR(vm->vm_type);
 
-	DECR0(vm->function_type);
-	DECR0(vm->closure_type);
-	DECR0(vm->frame_type);
-	DECR0(vm->continuation_type);
-	DECR0(vm->thread_type);
+	DECR(vm->nil_type);
+	DECR(vm->bool_type);
+	/*DECR(vm->string_type);
+	DECR(vm->list_type);
+	DECR(vm->symbol_type);
+	DECR(vm->map_type);
+	DECR(vm->instance_type);
 
-	DECR0(vm->nil_obj);
-	DECR0(vm->true_obj);
-	DECR0(vm->false_obj);
+	DECR(vm->function_type);
+	DECR(vm->closure_type);
+	DECR(vm->frame_type);
+	DECR(vm->continuation_type);
+	DECR(vm->thread_type);*/
+
+	DECR(vm->nil_obj);
+	DECR(vm->true_obj);
+	DECR(vm->false_obj);
+
+	// - run gc
+	// - delete remaining objects
 }

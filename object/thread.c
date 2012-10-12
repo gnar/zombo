@@ -45,7 +45,8 @@ static void thread_fn_initialize(object_t *obj)
 
 static void thread_fn_deinitialize(object_t *obj)
 {
-	DECR0(thr->frame);
+	thread_t *thr = (thread_t*)obj;
+	DECR0(thr->frm);
 }
 
 static wchar_t *thread_fn_repr(object_t *obj)

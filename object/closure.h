@@ -2,6 +2,7 @@
 #define CLOSURE_H
 
 #include "object/object.h"
+#include "object/function.h"
 
 typedef struct environment 
 {

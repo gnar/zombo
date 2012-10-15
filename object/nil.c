@@ -21,7 +21,7 @@ static size_t nil_fn_hash(object_t *self)
 
 type_t *niltype_new()
 {
-	type_t *nt = (type_t*)type_new(L"nil", vm_get()->object_type);
+	type_t *nt = (type_t*)type_new(L"nil_t", vm_get()->object_type);
 	nt->basicsize = sizeof(struct nil);
 	nt->fn_allocate = &object_fn_allocate;
 	nt->fn_deallocate = &object_fn_deallocate;

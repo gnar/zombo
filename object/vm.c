@@ -88,7 +88,6 @@ vm_t *vm_create()
 	itp->true_obj = bool_new(true);
 	itp->false_obj = bool_new(false);
 
-#if 0
 	/* string type */
 	itp->string_type = stringtype_new();
 
@@ -104,13 +103,12 @@ vm_t *vm_create()
 	/* instance_type */
 	itp->instance_type = NULL;
 
-	/* function_type */
+	/* function_type and related */
 	itp->function_type = functiontype_new();
 	itp->closure_type = NULL;
 	itp->frame_type = NULL;
 	itp->continuation_type = NULL;
 	itp->thread_type = threadtype_new();
-#endif
 
 	return itp;
 }
@@ -123,7 +121,7 @@ void vm_shutdown(vm_t *vm)
 
 	DECR(vm->nil_type);
 	DECR(vm->bool_type);
-	/*DECR(vm->string_type);
+	DECR(vm->string_type);
 	DECR(vm->list_type);
 	DECR(vm->symbol_type);
 	DECR(vm->map_type);
@@ -133,7 +131,7 @@ void vm_shutdown(vm_t *vm)
 	DECR(vm->closure_type);
 	DECR(vm->frame_type);
 	DECR(vm->continuation_type);
-	DECR(vm->thread_type);*/
+	DECR(vm->thread_type);
 
 	DECR(vm->nil_obj);
 	DECR(vm->true_obj);

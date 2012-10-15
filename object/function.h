@@ -11,9 +11,9 @@ typedef struct function
 	object_t super;
 
 	/* byte code */
-	size_t num_instr;
-	unsigned char *instr; /* the instructions */
-	unsigned int *instr_args;
+	size_t num_instr, instr_size; /* number of used/available entries in 'instr' and 'instr_args' */
+	int *instr; /* the instructions */
+	int *instr_args;
 	size_t stack_size; /* stack size needed to execute code in 'instr' */
 
 	/* constants table */
@@ -26,6 +26,7 @@ typedef struct function
 } function_t;
 
 function_t *function_new();
+void function_add_instr(function_t *fn, int opcode, int arg);
 
 type_t *functiontype_new();
 bool function_check(object_t *self);

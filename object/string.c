@@ -61,7 +61,7 @@ string_t *string_new(const wchar_t *chars)
 string_t *string_new_from_char_array(const char *chars)
 {
 	string_t *self;
-	const size_t len = 0; //strlen(chars) + 1;
+	const size_t len = strlen(chars) + 1;
 	wchar_t *wchars = (wchar_t*)malloc(len * sizeof(wchar_t));
 	
 	mbstowcs(wchars, chars, len);

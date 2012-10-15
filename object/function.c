@@ -21,7 +21,7 @@ function_t *function_new()
 
 type_t *functiontype_new()
 {
-	type_t *st = type_new(L"function", vm_get()->object_type);
+	type_t *st = type_new(L"func", vm_get()->object_type);
 	st->basicsize = sizeof(struct function);
 	st->fn_initialize   = &function_fn_initialize;
 	st->fn_deinitialize = &function_fn_deinitialize;
@@ -35,13 +35,35 @@ bool function_check(object_t *self)
 	return is_instance(self, vm_get()->function_type);
 }
 
+void function_add_instr(function_t *fn, int opcode, int arg)
+{
+	const int pos = fn->num_instr;
+
+	/* make space */
+	fn->num_instr += 1;
+	if (fn->num_instr >= fn->instr_size) {
+		fn->instr_size *= 2;
+		fn->instr      = (int*)realloc(fn->instr     , sizeof(int) * fn->instr_size);
+		fn->instr_args = (int*)realloc(fn->instr_args, sizeof(int) * fn->instr_size);
+	}
+
+	/* add instruction */
+	fn->instr[pos] = opcode;
+	fn->instr_args[pos] = arg;
+}
+
+/********************************************************************************/
+
+static const size_t DEFAULT_INSTR_SIZE = 32;
+
 static void function_fn_initialize(object_t *obj)
 {
 	function_t *fn = (function_t*)obj;
 
 	fn->num_instr = 0;
-	fn->instr = NULL;
-	fn->instr_args = NULL;
+	fn->instr_size = DEFAULT_INSTR_SIZE;
+	fn->instr = (int*)malloc(sizeof(int) * DEFAULT_INSTR_SIZE);
+	fn->instr_args = (int*)malloc(sizeof(int) * DEFAULT_INSTR_SIZE);
 	fn->stack_size = 0;
 	fn->num_constants = 0;
 	fn->constants = NULL;

@@ -46,7 +46,7 @@ size_t object_fn_hash(struct object *self)
 
 void object_delete(struct object *obj)
 {
-	printf("object_delete: %p\n", obj);
+	wprintf(L"object_delete: %p, %ls\n", obj, obj->type->fn_repr(obj));
 	type_deinitialize(obj->type, obj);
 	type_deallocate(obj->type, obj);
 }

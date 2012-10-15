@@ -3,11 +3,7 @@
 
 #include "object/object.h"
 #include "object/function.h"
-
-typedef struct environment 
-{
-	object_t super;
-} environment_t;
+#include "object/environment.h"
 
 typedef struct closure
 {

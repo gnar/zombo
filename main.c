@@ -44,10 +44,15 @@ void test1()
 	function_t *fn = function_new();
 	print_repr((object_t*)fn);
 
-	function_add_instr(I_NOP, 0);
-	function_add_instr(I_PUSHI, 42);
-	function_add_instr(I_RET, 0);
+	function_add_instr(fn, I_NOP, 0);
+	function_add_instr(fn, I_PUSHI, 42);
+	function_add_instr(fn, I_PUSHI, 58);
+	function_add_instr(fn, I_ADD, 0);
+	function_add_instr(fn, I_RET, 0);
 
+	function_debug_print(fn);
+
+	wprintf(L"---\n");
 	DECR(fn);
 }
 

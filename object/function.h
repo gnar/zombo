@@ -20,6 +20,9 @@ typedef struct function
 	size_t num_constants;
 	object_t *constants;
 
+	/* number of passed arguments (on the stack) */
+	unsigned int argc;
+
 	/* number and names of local lexical variables introduced by this function */
 	int num_locals;
 	char **locals;
@@ -31,31 +34,29 @@ void function_add_instr(function_t *fn, int opcode, int arg);
 type_t *functiontype_new();
 bool function_check(object_t *self);
 
+void function_debug_print(function_t *fn);
+
 /* instructions */
 
 #define I_NOP          0    /* NOP */
 
 #define I_PUSHI       10    /* PUSHI <int>         -- push integer */
 #define I_PUSHC       11    /* PUSHC <int>         -- push constant */
-#define I_PUSHL       11    /* PUSHL <int>         -- push lexical variable */
-#define I_PUSHR       12    /* PUSHR               -- push return-continuation of current frame */
+#define I_PUSHL       12    /* PUSHL <int>         -- push lexical variable */
+
+#define I_RET         40    /* RET */
 
 #define I_POP         20    /* POP                 -- pop stack top */
 #define I_POPL        21    /* POPL <int>          -- pop and save to lexical variable */
 
-#define I_UNOP        30    /* UNOP <int>          -- unary operator call */
-#define I_BINOP       31    /* BINOP <int>         -- binary operator call */
-#define I_APPLY       32    /* APPLY <int>         -- call a callable with <int> arguments */
+#define I_NEG         30    /* unary */
+#define I_ADD         31    /* binary (4x) */
+#define I_SUB         32   
+#define I_MUL         33   
+#define I_DIV         34   
 
-#define I_PRINT       40    /* PRINT               -- print and pop stack top element */
+#define I_APPLY       38    /* APPLY <int>         -- call a callable with <int> arguments */
 
-#define I_UNOP_PLUS   0  /* +a */
-#define I_UNOP_MINUS  1  /* -a */
-
-#define I_BINOP_ADD   0  /* a+b */
-#define I_BINOP_SUB   1  /* a-b */
-#define I_BINOP_MUL   2  /* a*b */
-#define I_BINOP_DIV   3  /* a/b */
-#define I_BINOP_POW   4  /* a**b */
+#define I_PRINT       80    /* PRINT               -- print and pop stack top element */
 
 #endif

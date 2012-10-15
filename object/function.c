@@ -5,6 +5,7 @@
 #include "tools.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 static void function_fn_initialize(object_t *);
 static void function_fn_deinitialize(object_t *);
@@ -52,6 +53,40 @@ void function_add_instr(function_t *fn, int opcode, int arg)
 	fn->instr_args[pos] = arg;
 }
 
+static char *instr_name(int instr)
+{
+	switch (instr) {
+		case I_NOP:        return "nop";
+		case I_PUSHI:      return "pushi";
+		case I_PUSHC:      return "pushc";
+		case I_PUSHL:      return "pushl";
+		case I_RET:        return "ret";
+		case I_POP:        return "pop";
+		case I_POPL:       return "popl";
+		case I_NEG:        return "neg";
+		case I_ADD:        return "add";
+		case I_SUB:        return "sub";
+		case I_MUL:        return "mul";
+		case I_DIV:        return "div";
+		case I_APPLY:      return "apply";
+		case I_PRINT:      return "print";
+		default: return "???";
+	}
+};
+
+void function_debug_print(function_t *fn)
+{
+	wprintf(L"function %p:\n", (void*)fn);
+	wprintf(L"        argc=%u", (unsigned int)fn->argc);
+	wprintf(L"  stack_size=%u", (unsigned int)fn->stack_size);
+	wprintf(L"\n");
+	wprintf(L"  code:\n");
+	for (size_t i=0; i<fn->num_instr; ++i) {
+		wprintf(L"    %3i: %s %i\n", (int)i, instr_name(fn->instr[i]), fn->instr_args[i]);
+	}
+	wprintf(L"end\n");
+}
+
 /********************************************************************************/
 
 static const size_t DEFAULT_INSTR_SIZE = 32;
@@ -60,6 +95,7 @@ static void function_fn_initialize(object_t *obj)
 {
 	function_t *fn = (function_t*)obj;
 
+	fn->argc = 0;
 	fn->num_instr = 0;
 	fn->instr_size = DEFAULT_INSTR_SIZE;
 	fn->instr = (int*)malloc(sizeof(int) * DEFAULT_INSTR_SIZE);

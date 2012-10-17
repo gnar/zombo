@@ -62,7 +62,7 @@ void thread_execute(thread_t *thr)
 				goto next;
 
 			case I_PUSHI:
-				stack_push(frm, integer_new(func->instr_args[ip]));
+				stack_push(frm, (object_t*)integer_new(func->instr_args[ip]));
 				goto next;
 				
 			case I_PUSHC:

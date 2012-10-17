@@ -11,6 +11,7 @@ typedef struct vm
 	struct type *object_type;
 	struct type *instance_type;
 	struct type *string_type;
+	struct type *integer_type;
 	struct type *nil_type;
 	struct type *bool_type;
 	struct type *list_type;

@@ -4,6 +4,7 @@
 #include "object/nil.h"
 #include "object/bool.h"
 #include "object/string.h"
+#include "object/integer.h"
 #include "object/symbol.h"
 #include "object/map.h"
 #include "object/function.h"
@@ -91,6 +92,9 @@ vm_t *vm_create()
 	/* string type */
 	itp->string_type = stringtype_new();
 
+	/* integer type */
+	itp->integer_type = integertype_new();
+
 	/* symbol type */
 	itp->symbol_type = symboltype_new();
 
@@ -122,6 +126,7 @@ void vm_shutdown(vm_t *vm)
 	DECR(vm->nil_type);
 	DECR(vm->bool_type);
 	DECR(vm->string_type);
+	DECR(vm->integer_type);
 	DECR(vm->list_type);
 	DECR(vm->symbol_type);
 	DECR(vm->map_type);

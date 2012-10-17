@@ -2,6 +2,7 @@
 #define INTEGER_H
 
 #include "object/object.h"
+#include "object/type.h"
 
 typedef struct integer
 {
@@ -9,6 +10,7 @@ typedef struct integer
 	int i;
 } integer_t;
 
-object_t *integer_new(int i);
+integer_t *integer_new(int i);
+type_t *integertype_new();
 
 #endif

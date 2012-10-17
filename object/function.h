@@ -18,7 +18,7 @@ typedef struct function
 
 	/* constants table */
 	size_t num_constants;
-	object_t *constants;
+	object_t **constants;
 
 	/* number of passed arguments (on the stack) */
 	unsigned int argc;

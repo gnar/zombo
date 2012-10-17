@@ -3,15 +3,7 @@
 
 #include "object/object.h"
 #include "object/closure.h"
-
-typedef struct frame
-{
-	object_t super;
-
-	/* the associated closure */
-	struct closure *clos; 
-	
-} frame_t;
+#include "object/frame.h"
 
 typedef struct thread
 {

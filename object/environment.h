@@ -6,6 +6,8 @@
 typedef struct environment 
 {
 	object_t super;
+
+	struct environment *up;
 } environment_t;
 
 #endif

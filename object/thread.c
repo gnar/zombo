@@ -52,11 +52,9 @@ void thread_execute(thread_t *thr)
 	closure_t *clos = frm->clos;
 	function_t *func = clos->func;
 
-	object_t *tmp;
-
 	while (true) {
 		const size_t ip = frm->ip;
-		int opcode = func->instr[ip];
+		const int opcode = func->instr[ip];
 		switch (opcode) {
 			case I_NOP: 
 				goto next;
@@ -65,10 +63,11 @@ void thread_execute(thread_t *thr)
 				stack_push(frm, (object_t*)integer_new(func->instr_args[ip]));
 				goto next;
 				
-			case I_PUSHC:
-				tmp = func->constants[func->instr_args[ip]]; INCR(tmp);
+			case I_PUSHC: {
+				object_t *tmp = func->constants[func->instr_args[ip]]; INCR(tmp);
 				stack_push(frm, tmp);
 				goto next;
+			}
 
 			case I_PUSHL:
 				assert(0);
@@ -76,8 +75,10 @@ void thread_execute(thread_t *thr)
 			case I_RET:
 				assert(0);
 
-			case I_POP:
-				assert(0);
+			case I_POP: {
+				object_t *tmp = stack_pop(frm);
+				DECR(tmp);
+			}
 
 			case I_POPL:
 				assert(0);
@@ -107,7 +108,7 @@ void thread_execute(thread_t *thr)
 		}
 next:		
 		frm->ip += 1;
-noincr:
+//noincr:
 		;
 	}
 }

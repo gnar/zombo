@@ -11,7 +11,7 @@ static size_t integer_fn_hash(object_t *obj);
 
 integer_t *integer_new(int i)
 {
-	type_t *it = vm_get()->string_type;
+	type_t *it = vm_get()->integer_type;
 	integer_t *obj = (integer_t*)type_allocate(it);
 	type_initialize(it, (object_t*)obj);
 

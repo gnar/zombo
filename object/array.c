@@ -1,14 +1,8 @@
-#include "Array.h"
+#include "object/array.h"
 
 #include "context.h"
 
 #include <stdlib.h>
-
-static object_message(struct Object *self, char *id);
-
-static struct Object_vtab array_vtab = {
-	object_message
-};
 
 static size_t initial_capacity(size_t len)
 {
@@ -31,44 +25,43 @@ static size_t initial_capacity(size_t len)
 	}
 }
 
-struct Array *array_allocate(struct Class *class, size_t len)
+struct array_t *array_allocate(struct Class *class, size_t len)
 {
-	Array *arr;
+	array_t *arr;
 	size_t cap_len = initial_capacity(len);
 
-	arr = (Array*)object_allocate(class, sizeof(Array));
+	arr = (array_t*)object_allocate(class, sizeof(array_t));
 	arr->beg = arr->end = arr->cap = NULL;
 	array_resize(arr, len);
 
 	return arr;
 }
 
-size_t array_capacity(Array *arr)
+size_t array_capacity(array_t *arr)
 {
 	return arr->cap - arr->begin;
 }
 
-size_t array_length(Array *arr)
+size_t array_length(array_t *arr)
 {
 	return arr->end - arr->begin;
 }
 
-size_t array_resize(Array *arr, size_t len)
+size_t array_resize(array_t *arr, size_t len)
 {
-	Object **it = NULL, **old_end = arr->end;
-
-	size_t cap_size = array_capacity(arr);
-
+	const size_t old_size = array_length(arr);
+	const size_t old_capa = array_capacity(arr);
+	
+	size_t cap_size = old_capa;
 	if (len > cap_size(arr)) { 
 		/* realloc needed */
-
 		if (cap_size == 0) {
 			cap_size = initial_capacity(len);
 		} else {
 			cap_size *= 2;
 		}
 
-		arr->beg = (Object**)realloc(arr->beg, cap_size * sizeof(Object*));
+		arr->beg = (object_t**)realloc(arr->beg, cap_size * sizeof(object_t*));
 		arr->end = arr->beg + len;
 		arr->cap = arr->beg + cap_size;
 	} else {
@@ -77,9 +70,7 @@ size_t array_resize(Array *arr, size_t len)
 	}
 
 	/* initialize any new elements */
-	if (old_end) {
-		for (it=old_end; it!=arr->end; ++it) {
-			*it = ctx->nil;
-		}
+	for (object_t *it=arr->beg + old_size; it!=arr->end; ++it) {
+		*it = vm_get()->the_nil;
 	}
 }

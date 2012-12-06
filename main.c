@@ -7,6 +7,7 @@
 #include "object/type.h"
 #include "object/map.h"
 #include "object/function.h"
+#include "object/integer.h"
 
 #include "tools.h"
 
@@ -22,6 +23,10 @@ void print_repr(object_t *obj)
 
 void test0()
 {
+	object_t *x = (object_t*)integer_new(42);
+	print_repr(x);
+	DECR(x);
+
 	//vm_t *v0 = vm_get();
 	//print_repr((object_t*)vm_get());
 	//DECR(v0);
@@ -60,5 +65,6 @@ int main()
 {
 	vm_create();
 	test1();
+	//test0();
 	vm_shutdown(vm_get());
 }

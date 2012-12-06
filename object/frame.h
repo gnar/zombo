@@ -11,6 +11,9 @@ typedef struct frame
 	closure_t *clos;
 	size_t ip; /* index to closure->func->code->instr[ip] */
 
+	/* lexical environment (extension of clos->lex_env, e.g. lex_env->up == clos->lex_env) */
+	environment_t *lex_env;
+
 	/* dynamic environment */
 	environment_t *dyn_env;
 

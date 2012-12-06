@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 static void function_fn_initialize(object_t *);
 static void function_fn_deinitialize(object_t *);
@@ -53,9 +54,14 @@ void function_add_instr(function_t *fn, int opcode, int arg)
 	fn->instr_args[pos] = arg;
 }
 
-static char *instr_name(int instr)
+void function_add_instr0(function_t *fn, int opcode)
 {
-	switch (instr) {
+	function_add_instr(fn, opcode, 0);
+}
+
+static char *instr_name(int opcode)
+{
+	switch (opcode) {
 		case I_NOP:        return "nop";
 		case I_PUSHI:      return "pushi";
 		case I_PUSHC:      return "pushc";
@@ -74,6 +80,27 @@ static char *instr_name(int instr)
 	}
 };
 
+static bool instr_has_arg(int opcode)
+{
+	switch (opcode) {
+		case I_NOP:        return false;
+		case I_PUSHI:      return true;
+		case I_PUSHC:      return true;
+		case I_PUSHL:      return true;
+		case I_RET:        return false;
+		case I_POP:        return false;
+		case I_POPL:       return true;
+		case I_NEG:        return false;
+		case I_ADD:        return false;
+		case I_SUB:        return false;
+		case I_MUL:        return false;
+		case I_DIV:        return false;
+		case I_APPLY:      return true;
+		case I_PRINT:      return false;
+	}
+	assert(0);
+}
+
 void function_debug_print(function_t *fn)
 {
 	wprintf(L"function %p:\n", (void*)fn);
@@ -82,7 +109,12 @@ void function_debug_print(function_t *fn)
 	wprintf(L"\n");
 	wprintf(L"  code:\n");
 	for (size_t i=0; i<fn->num_instr; ++i) {
-		wprintf(L"    %3i: %s %i\n", (int)i, instr_name(fn->instr[i]), fn->instr_args[i]);
+		const int opcode = fn->instr[i];
+		if (instr_has_arg(opcode)) {
+			wprintf(L"    %3i: %s %i\n", (int)i, instr_name(fn->instr[i]), fn->instr_args[i]);
+		} else {
+			wprintf(L"    %3i: %s\n", (int)i, instr_name(fn->instr[i]));
+		}
 	}
 	wprintf(L"end\n");
 }

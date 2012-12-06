@@ -30,6 +30,7 @@ typedef struct function
 
 function_t *function_new();
 void function_add_instr(function_t *fn, int opcode, int arg);
+void function_add_instr0(function_t *fn, int opcode);
 
 type_t *functiontype_new();
 bool function_check(object_t *self);

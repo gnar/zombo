@@ -1,0 +1,8 @@
+Object
+  Nil
+  True
+  False
+  Class
+  String
+  Integer
+  Native
